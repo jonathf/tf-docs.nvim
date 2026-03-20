@@ -2,7 +2,7 @@ local M = {}
 
 local view = require("tf-docs.view")
 local config = require("tf-docs.config")
-local docs = require("tf-docs.providers.docs")
+local docs = require("tf-docs.docs")
 
 ---@param picker "telescope"|"fzf"|"snacks"
 M.get = function(picker)

@@ -1,4 +1,4 @@
----@type tf-docs.Adaptor
+---@type tf-docs.ProviderAdaptor
 return {
   repo_url = "https://github.com/hashicorp/terraform-provider-google.git",
   is_legacy_docs = true,

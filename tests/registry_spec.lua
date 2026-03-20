@@ -1,14 +1,19 @@
 require("plenary.busted")
-local registry = require("tf-docs.providers.registry")
-local config = require("tf-docs.config")
+local registry = require("tf-docs.registry")
+
+local current = require("tests.providers.tfdocs_current")
+local legacy = require("tests.providers.tfdocs_legacy")
+
+local current_spec = vim.tbl_extend("force", { name = "tf-docs" }, current)
+local legacy_spec = vim.tbl_extend("force", { name = "tf-docs-legacy" }, legacy)
 
 describe("tf-docs provider registry integrity", function()
   before_each(function()
-    config.setup({})
+    registry.setup_adaptors({ current_spec, legacy_spec })
   end)
 
   -- Loop through every registered provider provider
-  for provider, _ in pairs(registry.providers) do
+  for _, provider in ipairs({ "tf-docs", "tf-docs-legacy" }) do
     it("validates the '" .. provider .. "' provider contract", function()
       local adaptor = registry.get(provider)
 
@@ -21,12 +26,12 @@ describe("tf-docs provider registry integrity", function()
       assert.is_string(adaptor.file_extension, provider .. " is missing file_extension")
 
       -- 3. Verify injected registry fields
-      assert.is_string(adaptor.docs_root, provider .. " failed to receive docs_root injection")
-      assert.is_table(adaptor.docs_layout, provider .. " failed to receive docs_layout injection")
+      assert.is_string(adaptor._docs_root, provider .. " failed to receive _docs_root injection")
+      assert.is_table(adaptor._docs_layout, provider .. " failed to receive _docs_layout injection")
 
       -- 4. Verify specific layout mapping (Resource and Data should always exist)
-      assert.is_string(adaptor.docs_layout.resource, provider .. " layout is missing 'resource' mapping")
-      assert.is_string(adaptor.docs_layout.data, provider .. " layout is missing 'data' mapping")
+      assert.is_string(adaptor._docs_layout.resource, provider .. " layout is missing 'resource' mapping")
+      assert.is_string(adaptor._docs_layout.data, provider .. " layout is missing 'data' mapping")
     end)
   end
 end)

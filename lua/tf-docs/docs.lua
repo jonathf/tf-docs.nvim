@@ -1,7 +1,7 @@
 local M = {}
 
 local config = require("tf-docs.config")
-local registry = require("tf-docs.providers.registry")
+local registry = require("tf-docs.registry")
 
 local function get_basename(path)
   -- 1. Extract the filename from the path (handles / and \)
@@ -42,6 +42,7 @@ local function get_subcategory(filepath)
 end
 
 -- create a table of the docs, used in a picker
+-- TODO: consider adding this to the lazy installer and store it
 M.get_doc_table = function(provider)
   local adaptor = registry.get(provider)
   if not adaptor then
@@ -49,14 +50,14 @@ M.get_doc_table = function(provider)
   end
 
   local base_dir = vim.fn.expand(config.options.provider_docs_install_location .. "/" .. provider)
-  local cwd = base_dir .. "/" .. (adaptor.docs_root or "")
+  local cwd = base_dir .. "/" .. (adaptor._docs_root or "")
   local results = {}
 
-  for doc_type, dir_name in pairs(adaptor.docs_layout) do
+  for doc_type, dir_name in pairs(adaptor._docs_layout) do
     local search_dir = cwd .. "/" .. dir_name
     local glob_pattern = "**/*" .. adaptor.file_extension
     local files = vim.fn.globpath(search_dir, glob_pattern, true, true)
-    local type_emoji = adaptor.emoji_map[doc_type] or "📄"
+    local type_emoji = adaptor._emoji_map[doc_type] or "📄"
 
     for _, full_path in ipairs(files) do
       local resource_name = get_basename(full_path)
@@ -69,14 +70,11 @@ M.get_doc_table = function(provider)
         file = full_path,
         subcategory = subcategory,
         emoji = type_emoji,
-        -- Using search_str allows fuzzy matching on EVERYTHING (type, name, subcat).
-        text = search_str, -- 'text' key for Snacks.
-        -- _search_index = search_str, -- for Telescope ordinal
+        text = search_str, -- 'text' key for Snacks, other pickers are less picky... lol
       })
     end
   end
 
-  -- Sorting logic remains the same...
   table.sort(results, function(a, b)
     if a.type ~= b.type then
       return a.type > b.type

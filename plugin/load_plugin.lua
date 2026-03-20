@@ -30,10 +30,3 @@ end, {
   nargs = "+",
   desc = "Open Terraform documentation for a provider",
 })
-
--- lazy install, update, remove providers
-vim.api.nvim_create_user_command("TFDocsLazy", function()
-  require("tf-docs.install").lazy_installer()
-end, {
-  desc = "Exec the lazy installer to install, update, remove provider(s)",
-})

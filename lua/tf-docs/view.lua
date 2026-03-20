@@ -28,16 +28,29 @@ function M.open(path)
     return
   end
 
-  if opts.float then
-    return vim.api.nvim_open_win(buf, true, opts.float)
-  end
+  local win
 
-  if opts.split then
-    return vim.api.nvim_open_win(buf, true, {
+  if opts.float then
+    win = vim.api.nvim_open_win(buf, true, opts.float)
+  elseif opts.split then
+    win = vim.api.nvim_open_win(buf, true, {
       split = opts.split, -- "right", "left", "above", or "below"
-      win = 0, -- Split relative to current window
+      win = 0,
     })
   end
+
+  if not win then
+    return
+  end
+
+  local wo = vim.wo[win]
+  wo.number = false
+  wo.relativenumber = false
+  wo.signcolumn = "no"
+  wo.cursorline = false
+  wo.wrap = true
+
+  return win
 end
 
 return M

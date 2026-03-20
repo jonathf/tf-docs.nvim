@@ -4,6 +4,9 @@ require("plenary.busted")
 local install = require("tf-docs.install")
 local config = require("tf-docs.config")
 
+local current = require("tests.providers.tfdocs_current")
+local current_spec = vim.tbl_extend("force", { name = "tf-docs" }, current)
+
 describe("tf-docs install", function()
   local test_dir
 
@@ -13,6 +16,7 @@ describe("tf-docs install", function()
     vim.fn.mkdir(test_dir, "p")
 
     config.setup({
+      providers = { current_spec },
       provider_docs_install_location = test_dir,
     })
   end)
@@ -23,7 +27,7 @@ describe("tf-docs install", function()
   end)
 
   it("returns nil for unknown provider", function()
-    -- Fixed: passed an actual unknown provider instead of "aws"
+    -- Unknown provider should return nil adaptor/installation
     local result = install.install_provider("some_fake_unknown_provider")
     assert.is_nil(result)
   end)

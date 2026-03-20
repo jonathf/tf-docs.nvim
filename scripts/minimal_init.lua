@@ -1,7 +1,8 @@
 local root = vim.fn.getcwd()
 vim.opt.rtp:append(root)
 
--- 1. Define possible paths for dependencies
+-- Define possible paths for dependencies
+-- local and GH actions compatible
 local function add_dep(name)
   local paths = {
     root .. "/../" .. name, -- CI/Manual Clones

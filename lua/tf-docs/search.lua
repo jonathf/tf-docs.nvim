@@ -1,9 +1,9 @@
+local M = {}
+
 local config = require("tf-docs.config")
-local registry = require("tf-docs.providers.registry")
+local registry = require("tf-docs.registry")
 local logging = require("tf-docs.logging")
 local view = require("tf-docs.view")
-
-M = {}
 
 local function file_exists(name)
   local f = io.open(name, "r")
@@ -27,11 +27,11 @@ M.search = function(provider, doc_type, resource)
   end
 
   local cwd = vim.fn.expand(config.options.provider_docs_install_location .. "/" .. provider)
-  if adaptor.docs_root then
-    cwd = cwd .. "/" .. adaptor.docs_root
+  if adaptor._docs_root then
+    cwd = cwd .. "/" .. adaptor._docs_root
   end
 
-  local type_path = adaptor["docs_layout"][doc_type]
+  local type_path = adaptor._docs_layout and adaptor._docs_layout[doc_type]
   if not type_path then
     logging.warn("type not found: " .. doc_type)
     return nil

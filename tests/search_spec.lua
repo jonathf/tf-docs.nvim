@@ -4,6 +4,12 @@ local search = require("tf-docs.search")
 local config = require("tf-docs.config")
 local view = require("tf-docs.view")
 
+local current = require("tests.providers.tfdocs_current")
+local legacy = require("tests.providers.tfdocs_legacy")
+
+local current_spec = vim.tbl_extend("force", { name = "tf-docs" }, current)
+local legacy_spec = vim.tbl_extend("force", { name = "tf-docs-legacy" }, legacy)
+
 describe("tf-docs search", function()
   local test_dir
   local opened_path = nil
@@ -13,6 +19,7 @@ describe("tf-docs search", function()
     vim.fn.mkdir(test_dir, "p")
 
     config.setup({
+      providers = { current_spec, legacy_spec },
       provider_docs_install_location = test_dir,
     })
 
@@ -28,7 +35,7 @@ describe("tf-docs search", function()
   end)
 
   it("constructs correct path and opens window for modern providers", function()
-    -- 1. Setup mock directory structure for: aws/docs/resources/mock.md
+    -- 1. Setup mock directory structure for current provider: tf-docs/docs/resources/mock.md
     local provider_path = test_dir .. "/tf-docs/docs/resources"
     vim.fn.mkdir(provider_path, "p")
     local file_path = provider_path .. "/mock.md"
@@ -57,7 +64,7 @@ describe("tf-docs search", function()
 
   it("returns nil and does not open window if file is missing", function()
     -- Call search for a file we haven't created
-    local result = search.search("aws", "resource", "non_existent")
+    local result = search.search("tf-docs", "resource", "non_existent")
 
     assert.is_nil(result)
     assert.is_nil(opened_path)

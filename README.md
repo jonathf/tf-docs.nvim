@@ -1,16 +1,13 @@
 # tf-docs.nvim
-> [!WARNING] 
-> tf-docs is relativley experimental, specifically around the the install mechanism
-> feel free to try it out, but note that `~.local/shares/nvim/tf-docs` will be a mess...
 
-Terraform provider documentation *inside* nvim  
+Terraform provider documentation *inside* nvim - simple & fast
 
 ## ✨ Features
 1. Lazy install, update, and removal of provider docs
 2. Search terraform provider docs inside nvim
-3. Multi-picker options (`telescope.nvim`, `snacks`, `fzf-lua`, or BYO)
-4. Cofigurable display
-5. Extensible provider structure 
+3. Extensible provider layout & custom providers
+4. Multi-picker options (`telescope.nvim`, `snacks`, `fzf-lua`, or BYO)
+5. Cofigurable docs display
 
 ## ⚡️ Requirements
 - `nvim`
@@ -21,113 +18,133 @@ Terraform provider documentation *inside* nvim
 `lazy.nvim` minimal install with defaults
 ```lua
 {
-  'cablecreek/tf-docs',
+  'cablecreek/tf-docs.nvim',
   dependencies = {
-    'folke/snacks.nvim',
+    'folke/snacks.nvim', -- snacks is the default picker
   },
   opts = {
     providers = {
-      -- add providers to install here
+      -- add named providers here
       -- 'aws', 'gcp', 'k8s',
+      -- 
+      -- or add a custom provider
     },
   },
 }
+```
 
+## Usage
+```lua
+TFDocs <provider> -- opens picker and browsing docs
+TFDocsSearch <provider> <type> <resource> -- opens doc in view
 ```
 
 ## ⚙️ Configuration/Options 
-`tf-docs` comes with defaults however, you are able to customise: 
-1. picker
-2. window config
+`tf-docs` comes with defaults however, the following can be customised
+1. providers 
+2. docs window  
+3. picker 
 
+### default options
 ```lua
--- default options
 opts = {
   providers = {},
   picker = "snacks", -- "telescope", "fzf", "snacks", or BYO <function>
   provider_docs_install_location = vim.fn.stdpath("data") .. "/tf-docs", -- ~/.local/share/nvim/
-  -- either a `split` or `float`
   win_config = {
+    -- either a `split` or `float`
     split = "right", -- "right"|"left"|"above"|"below" The direction to split the current window.
     float = nil, -- is a `vim.api.keyset.win_config` type i.e. width, height, border, etc. 
   },
 }
+```
 
--- Telescope + floating window
+### 1. providers
+- create a `tf-docs.ProviderAdaptor` table 
+- as a rule of thumb for the provider config
+  - it is legacy if the repo contains `website/docs/`
+  - legacy also tends to use `.html.markdown`
+  - `aws` and `gcp` are examples of legacy, `k8s` is current
+```lua
 opts = {
-  providers = {},
-  picker = "telescope", 
-  win_config = {
-    float = {
-      relative = "editor",
-      width = 80,
-      height = 20,
-      row = 10,
-      col = 10,
-      border = "rounded",
+  providers = {
+    ---@type tf-docs.ProviderAdaptor
+    {
+      name = 'aws', -- becomes the dir name and registry key, i.e. :TFDocs aws
+      repo_url = "https://github.com/hashicorp/terraform-provider-aws.git",
+      is_legacy_docs = true,
+      search_title = "Terraform AWS Docs",
+      file_extension = ".html.markdown",
     },
   },
 }
+```
 
--- fzf + split below
+### 2. docs window
+```lua
+-- split below
 opts = {
-  providers = {},
-  picker = "fzf", 
   win_config = {
     split = "below",
   },
 }
 
+-- floating window
+opts = {
+  win_config = {
+    float = {
+      relative = "editor",
+      width = math.floor(vim.o.columns * 0.7),
+      height = math.floor(vim.o.lines * 0.7),
+      row = math.floor((vim.o.lines - (vim.o.lines * 0.7)) / 2),
+      col = math.floor((vim.o.columns - (vim.o.columns * 0.7)) / 2),
+      border = "rounded",
+    },
+  },
+}
+
+-- etc. 
 ```
 
-## functions
+### 3. picker
+There are 2 functions that allow you to create a custom picker
+1. `get_doc_table` - returns a table with document items
+2. `open` - opens the selected file in the view 
+
+Example of a minimal `snacks` picker:
 ```lua
-TFDocs <provider> -- opens picker and browsing docs
-TFDocsLazy -- lazy install + update + remove providers
-TFDocsSearch <provider> <type> <resource> -- opens doc in view
-TFDocsAll <provider> -- table of all docs for a given provider (helpful for custom pickers)
-```
+local custom_snacks_picker = function(provider)
+  -- ensure you load the plugin inside the function
+  local tf_docs = require 'tf-docs'
 
-## Custom picker
-- inside the `setup.opts` assign `picker = my_picker`
-- where `local my_picker = function(provider)`
-- `TFDocsAll <provider>` returns a table with details on the docs
-
-```lua
--- custom picker 
-local view = require("tf-docs.view")
-local config = require("tf-docs.config")
-local docs = require("tf-docs.providers.docs")
-
-M.snacks = function(provider)
-  require("snacks").picker.pick({
-    source = "Terraform Docs",
-    items = docs.get_doc_table(provider),
-    preview = "file",
+  require('snacks').picker.pick {
+    source = 'Terraform Docs',
+    -- Accessing the exposed doc table function
+    items = tf_docs.get_doc_table(provider),
+    preview = 'file',
     format = function(item)
       return {
-        { item.emoji, "SnacksPickerEmoji" },
-        { " " .. (item.type or ""), "SnacksPickerComment" },
-        { " " .. (item.name or ""), "SnacksPickerLabel" },
-        { " " .. (item.subcategory or ""), "SnacksPickerComment" },
+        { item.emoji, 'SnacksPickerEmoji' },
+        { ' ' .. (item.name or ''), 'SnacksPickerLabel' },
       }
     end,
     confirm = function(picker, item)
       picker:close()
       if item then
-        view.open(item.file)
+        -- Accessing the exposed view function
+        tf_docs.open(item.file)
       end
     end,
-  })
+  }
 end
 
 opts = {
   providers = {},
-  picker = "fzf", 
+  picker = custom_snacks_picker, -- assign your picker  
 }
 
-`
 ``` 
+
 ## Supported Providers
 | provider | repo | 
 | :--- |  ---: |
@@ -135,30 +152,4 @@ opts = {
 | `gcp` | https://github.com/hashicorp/terraform-provider-google |
 | `k8s` | https://github.com/hashicorp/terraform-provider-kubernetes | 
 
-- PR's for providers are always welcome!
-
-## TODO
-- [ ] update mechanism fails
-- [ ] nvim docs
-- [ ] uninstall tidy up
-- [ ] add a few other providers:
-  - [ ] https://github.com/hashicorp/terraform-provider-azurerm
-  - [ ] https://github.com/hashicorp/terraform-provider-helm
-- [ ] finish tests
-  - [x] config
-  - [ ] view
-  - [ ] install <- how to handle async install?
-  - [x] pickers 
-  - [ ] providers_docs <- get install working first
-  - [x] providers_registry
-  - [x] search
-- [ ] check custom opts examples are working
-- [ ] ensure `update` has a long term stability
-
-## ideas
-- [ ] search for under cursor (like gd, gr, etc.), need to also account for the "resource" or "data" resource 
-- [ ] refine install tests (i.e. actually pull the repo and wait until done)
-- [ ] parse a custom + private repo from the `opts.provider`
-- [ ] command for listing available providers to install?
-- [ ] yaml frontmatter is optional but often used, may hit an issue here...
-
+- PR's for providers are always welcome! see [CONTRIBUTING.md]
