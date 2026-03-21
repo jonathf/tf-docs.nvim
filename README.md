@@ -9,6 +9,10 @@ Terraform provider documentation *inside* nvim - simple & fast
 4. Multi-picker options (`telescope.nvim`, `snacks`, `fzf-lua`, or BYO)
 5. Cofigurable docs display
 
+
+| Browse with picker | Search specific resouce |
+| :---: | :---: |
+| ![TFDocs Picker](img/tf-docs-nvim_picker.gif) | ![TFDocsSearch](img/tf-docs-nvim_open.gif) |
 ## ⚡️ Requirements
 - `nvim`
 - `git`
