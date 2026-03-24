@@ -7,7 +7,7 @@ Terraform provider documentation *inside* nvim - simple & fast
 2. Search terraform provider docs inside nvim
 3. Extensible provider layout & custom providers
 4. Multi-picker options (`telescope.nvim`, `snacks`, `fzf-lua`, or BYO)
-5. Cofigurable docs display
+5. Configurable docs display
 
 
 | Browse with picker | Search specific resouce |
