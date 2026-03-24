@@ -33,7 +33,7 @@ return {
   opts = {
     providers = {
       -- add named providers here
-      -- 'aws', 'gcp', 'k8s',
+      -- 'aws', 'google', 'kubernetes',
       --
       -- or add a custom provider
     },
