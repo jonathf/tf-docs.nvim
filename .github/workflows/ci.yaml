@@ -17,7 +17,8 @@ jobs:
           neovim: true
           version: nightly
 
-      - uses: go-task/setup-task@v1
+      - name: go-task/setup-task
+        uses: go-task/setup-task@v2.0.0
 
       - name: setup
         run: |
